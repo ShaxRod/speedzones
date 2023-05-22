@@ -1,15 +1,27 @@
-input_dir = ''
+main_dir = 'C:\\Users\\User\\Downloads\\OneDrive_2023-05-22\\PhD Data'
 output_dir = ''
 
 # labelled : position - university - a/b (two players) . csv
-positions = ['GK', 'GS', 'GD', 'WA', 'WD', 'C', 'GA']
+positions = ('GK', 'GS', 'GD', 'WA', 'WD', 'C', 'GA')
 
-university = {'1': 'NMU',
-              '2': 'CPUT',
-              '3': 'WITS'}
+team = {'1': 'CPUT',
+        '2': 'NMU',
+        '3': 'WITS'}
 
-"we made a change lol"
 def netball(name):
+
+
+
+# Hypothesis 1
+
+
+# Hypotheis 2
+
+
+# Hypotheis 3
+
+# Hypothesis 4
+
 
 
 

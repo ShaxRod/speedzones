@@ -1,11 +1,15 @@
-from utils.speedzones import speedzone
+from utils.speedzones import preprocess
 import pandas as pd
 import numpy as np
+import os
+import openpyxl
+from matplotlib import pyplot as plt
+from utils.dataclass import pickled
 
-v = [1, 2, 3, 4, 5]
-a = [6, 7, 8, 9, 10]
+###########
+main_dir = 'C:\\Users\\User\\Downloads\\OneDrive_2023-05-22\\PhD Data'
+all_data_dict = preprocess().all_data(main_dir)
 
-frame = pd.DataFrame({'velocity': v, 'acceleration': a})
+pickled().pickling('C:\\Users\\User\\OneDrive\Desktop\\speed_zone_dict', all_data_dict)
 
-
-test = speedzone(frame) # works :)
+read_pickle = pickled().open_jar('C:\\Users\\User\\OneDrive\\Desktop\\speed_zone_dict')
