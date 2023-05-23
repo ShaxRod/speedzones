@@ -5,7 +5,7 @@ import datetime
 import openpyxl
 
 
-class preprocess:
+class Preprocess:
     ''' class to clean up data sets'''
 
     def get_sheets(self, directory: str):
@@ -55,14 +55,43 @@ class preprocess:
             all_data[team] = team_dict
         return all_data
 
-class speedzone(object):
+
+class Speedzones(object):
 
     def __init__(self, Dataframe):
 
         self.frame = Dataframe
-        self.velocity = Dataframe[['velocity']]
-        self.acceleration = Dataframe['acceleration']
+        self.velocity = Dataframe[[' Speed']]
+        self.acceleration = Dataframe[[' Accel X', ' Accel Y', ' Accel Z']]
 
-    def random(self):
+    def velocity_zones(self, distribution_type: str = 'right-skew'):
+        '''
 
-        return
+        :param distribution_type: normal, right-skew, left-skew
+        :return: dictionary with speed zones
+        '''
+        # function returns velocity zones for netball players. Left skewed distributions have been observed
+
+        velocity = self.velocity
+        speed_zones = dict()
+
+        # bounds
+        speed_zones['0'] = velocity.min()  # minimum velocity
+
+        mu = velocity.mean()  # mean
+        sigma = velocity.std()  # standard deviation
+
+        if distribution_type == 'right-skew':
+            for i in range(1, 5):
+                speed_zones[i] = speed_zones['0'] + sigma * i
+        elif distribution_type == 'normal':
+            for i, j in enumerate(range(-2, 3)):
+                speed_zones[i + 1] = mu + j * sigma
+
+        speed_zones['5'] = velocity.max()  # maximum velocity
+
+        return speed_zones
+
+    def acceleration_zones(self):
+        lol = 1
+        return 0

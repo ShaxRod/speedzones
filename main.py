@@ -1,5 +1,5 @@
 main_dir = 'C:\\Users\\User\\Downloads\\OneDrive_2023-05-22\\PhD Data'
-output_dir = ''
+output_dir = 'C:\\Users\\User\\OneDrive\Desktop'
 
 # labelled : position - university - a/b (two players) . csv
 positions = ('GK', 'GS', 'GD', 'WA', 'WD', 'C', 'GA')
