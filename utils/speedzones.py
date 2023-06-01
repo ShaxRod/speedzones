@@ -67,8 +67,8 @@ class Speedzones(object):
     def velocity_zones(self, distribution_type: str = 'right-skew'):
         '''
 
-        :param distribution_type: normal, right-skew, left-skew
-        :return: dictionary with speed zones
+        :param distribution_type: normal, right-skew
+        :return: dictionary with velocity zones
         '''
         # function returns velocity zones for netball players. Left skewed distributions have been observed
 
@@ -82,16 +82,43 @@ class Speedzones(object):
         sigma = velocity.std()  # standard deviation
 
         if distribution_type == 'right-skew':
-            for i in range(1, 5):
+            for i in range(1, 6):
                 speed_zones[i] = speed_zones['0'] + sigma * i
         elif distribution_type == 'normal':
             for i, j in enumerate(range(-2, 3)):
                 speed_zones[i + 1] = mu + j * sigma
 
-        speed_zones['5'] = velocity.max()  # maximum velocity
+        speed_zones['6'] = velocity.max()  # maximum velocity
 
         return speed_zones
 
-    def acceleration_zones(self):
-        lol = 1
-        return 0
+    def acceleration_zones(self, distribution_type: str = 'normal'):
+        '''
+
+        :param distribution_type: normal, right-skew
+        :return: dictionary with velocity zones
+        '''
+
+        speed_zones = dict()
+        acceleration = self.acceleration
+        magnitude = (acceleration[' Accel X'] ** 2 +
+                     acceleration[' Accel Y'] ** 2 +
+                     acceleration[' Accel Z'] ** 2) ** 0.5
+
+
+        # bounds
+        speed_zones['0'] = magnitude.min()  # minimum velocity
+
+        mu = magnitude.mean()  # mean
+        sigma = magnitude.std()  # standard deviation
+
+        if distribution_type == 'right-skew':
+            for i in range(1, 6):
+                speed_zones[i] = speed_zones['0'] + sigma * i
+        elif distribution_type == 'normal':
+            for i, j in enumerate(range(-2, 3)):
+                speed_zones[i + 1] = mu + j * sigma
+
+        speed_zones['6'] = magnitude.max()  # maximum velocity
+
+        return speed_zones

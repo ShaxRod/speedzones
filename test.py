@@ -12,7 +12,10 @@ all_data_dict = preprocess().all_data(main_dir)
 
 pickled().pickling('C:\\Users\\User\\OneDrive\Desktop\\speed_zone_dict', all_data_dict)
 
-read_pickle = pickled().open_jar('C:\\Users\\User\\OneDrive\\Desktop\\speed_zone_dict')
+
+read_pickle = pickled().open_jar('C:\\Users\\User\\OneDrive\Desktop\\speed_zone_dict')
+
 
 test_frame = read_pickle['Team 1']['Team 1_M1.xlsx']['WD1A']
+test_frame['a_magnitude'] = test_frame.apply(lambda x: (x[6]**2 + x[7]**2 + x[8]**2)**0.5, axis=1)
 test_zone = Speedzones(test_frame)
