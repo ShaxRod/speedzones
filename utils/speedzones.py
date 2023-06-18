@@ -30,8 +30,24 @@ class Preprocess:
 
         match_dictionary = dict()
         for position in sheet_names:
+
             print(position)
-            match_dictionary[position] = pd.read_excel(directory, position)
+            frame = pd.read_excel(directory, position)
+            frame = frame.dropna(axis='columns')
+            try:
+                frame['Time Delta'] = frame['Excel Timestamp'].diff(1)
+                frame.columns = ['Match Phase', 'Real-Time Timestamp', 'Excel Timestamp', 'Speed',
+                                 'Latitude', 'Longitude', 'Accel X', 'Accel Y', 'Accel Z']
+                error = False
+            except:
+                print('error with data frame')
+                error = True
+            finally:
+                if error:
+                    match_dictionary[position] = {'error': error, 'frame': frame}
+                else:
+                    match_dictionary[position] = frame
+
         return match_dictionary
 
     def all_data(self, main_dir: str):
@@ -48,9 +64,9 @@ class Preprocess:
             for game in game_list:
                 print(game)
                 game_dir = f'{team_dir}\\{game}'
-                sheets = preprocess().get_sheets(game_dir)
-                match_dict = preprocess().game_dict(sheets, game_dir)
-                team_dict[game] = match_dict
+                sheets = Preprocess().get_sheets(game_dir)
+                match_dict = Preprocess().game_dict(sheets, game_dir)
+                team_dict[game[7:9]] = match_dict
 
             all_data[team] = team_dict
         return all_data
@@ -61,8 +77,8 @@ class Speedzones(object):
     def __init__(self, Dataframe):
 
         self.frame = Dataframe
-        self.velocity = Dataframe[[' Speed']]
-        self.acceleration = Dataframe[[' Accel X', ' Accel Y', ' Accel Z']]
+        self.velocity = Dataframe[['Speed']]
+        self.acceleration = Dataframe[['Accel X', 'Accel Y', 'Accel Z']]
 
     def velocity_zones(self, distribution_type: str = 'right-skew'):
         '''
@@ -76,23 +92,23 @@ class Speedzones(object):
         speed_zones = dict()
 
         # bounds
-        speed_zones['0'] = velocity.min()  # minimum velocity
+        speed_zones['v0'] = velocity.min()  # minimum velocity
 
         mu = velocity.mean()  # mean
         sigma = velocity.std()  # standard deviation
 
         if distribution_type == 'right-skew':
             for i in range(1, 6):
-                speed_zones[i] = speed_zones['0'] + sigma * i
+                speed_zones['v' + str(i)] = speed_zones['v0'] + sigma * i
         elif distribution_type == 'normal':
             for i, j in enumerate(range(-2, 3)):
-                speed_zones[i + 1] = mu + j * sigma
+                speed_zones['v' + str(i + 1)] = mu + j * sigma
 
-        speed_zones['6'] = velocity.max()  # maximum velocity
+        speed_zones['v6'] = velocity.max()  # maximum velocity
 
         return speed_zones
 
-    def acceleration_zones(self, distribution_type: str = 'normal'):
+    def acceleration_zones(self, distribution_type: str = 'normal', drop_z : bool = False):
         '''
 
         :param distribution_type: normal, right-skew
@@ -101,24 +117,32 @@ class Speedzones(object):
 
         speed_zones = dict()
         acceleration = self.acceleration
-        magnitude = (acceleration[' Accel X'] ** 2 +
-                     acceleration[' Accel Y'] ** 2 +
-                     acceleration[' Accel Z'] ** 2) ** 0.5
 
+        if drop_z:
+            magnitude = (acceleration['Accel X'] ** 2 +
+                         acceleration['Accel Y'] ** 2) ** 0.5
+        else:
+            magnitude = (acceleration['Accel X'] ** 2 +
+                         acceleration['Accel Y'] ** 2 +
+                         acceleration['Accel Z'] ** 2) ** 0.5
 
         # bounds
-        speed_zones['0'] = magnitude.min()  # minimum velocity
+        speed_zones['a0'] = magnitude.min()  # minimum velocity
 
         mu = magnitude.mean()  # mean
         sigma = magnitude.std()  # standard deviation
 
         if distribution_type == 'right-skew':
             for i in range(1, 6):
-                speed_zones[i] = speed_zones['0'] + sigma * i
+                speed_zones['a' + str(i)] = speed_zones['a0'] + sigma * i
         elif distribution_type == 'normal':
             for i, j in enumerate(range(-2, 3)):
-                speed_zones[i + 1] = mu + j * sigma
+                speed_zones['a' + str(i + 1)] = mu + j * sigma
 
-        speed_zones['6'] = magnitude.max()  # maximum velocity
+        speed_zones['a6'] = magnitude.max()  # maximum velocity
 
         return speed_zones
+
+    def apply_zones(self, frame, aggregation):
+
+        return frame
