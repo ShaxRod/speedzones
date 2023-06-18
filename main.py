@@ -25,10 +25,10 @@ study_groups = {'defenders': ('GK', 'GD'),
                 'goalers': ('GS', 'GA')}
 
 # boolean paramaters
-preprocess = False # preprocess data step : if already done set to False
-H1 = False
-H2 = False
-H3 = True
+preprocess = True # preprocess data step : if already done set to False
+H1 = True
+H2 = True
+H3 = False
 H4 = False
 
 def netball():
@@ -46,7 +46,8 @@ def netball():
     # Speed zones per position (a,v) compare to gps system [Independent of time]
     # - positions (all teams merged)
     if H1:
-
+        print('Running Hypothesis 1')
+        # creating directories
         h1_directories = ['speedzone_outputs', 'H1', 'graphs', 'speedzones']
         dir_string = f'{output_dir}'
 
@@ -100,7 +101,7 @@ def netball():
 # Hypotheis 2
 
     if H2:
-
+        print('Running Hypothesis 2')
         h2_directories = ['speedzone_outputs', 'H2', 'speedzones']
         dir_string = f'{output_dir}'
 
@@ -113,15 +114,39 @@ def netball():
 
             dir_string = dir_string_i
 
+            # importing speed-zone data
             if not H1:
-                velocity_zones = pd.read_excel(f'{output_dir}\\speedzone_outputs\\H1\\speedzones\\velocity.xlsx')
+                # velocity_zones = pd.read_excel(f'{output_dir}\\speedzone_outputs\\H1\\speedzones\\velocity.xlsx')
                 acceleration_zones = pd.read_excel(f'{output_dir}\\speedzone_outputs\\H1\\speedzones\\acceleration.xlsx')
+                position_dict = pickled().open_jar(f'{output_dir}\\speedzone_outputs\\H1\\aggregated_position_dict')
             else:
-                velocity_zones = H1_frame_v.copy()
+                # velocity_zones = H1_frame_v.copy()
                 acceleration_zones = H1_frame_a.copy()
 
+
             # applying speed-zones
-            for
+            for position in position_dict:
+
+                position_agg_frame = position_dict[position].copy()
+                position_agg_frame['Accel Magnitude 3D'] = (position_agg_frame['Accel X'] ** 2 +
+                                                            position_agg_frame['Accel Y'] ** 2 +
+                                                            position_agg_frame['Accel Z'] ** 2) ** 0.5
+
+                position_acceleration_zones = acceleration_zones[acceleration_zones['position'] == position]
+
+                # apply speed-zones
+                position_dict[position]['acceleration zones'] = pd.cut(x=position_agg_frame['Accel Magnitude 3D'],
+                                                     bins=position_acceleration_zones[['a0', 'a1', 'a2', 'a3',
+                                                                                       'a4', 'a5']].values.tolist()[0],
+                                                     labels=['zone 1', 'zone 2', 'zone 3', 'zone 4', 'zone 5'])
+
+        pickled().pickling(f'{output_dir}\\speedzone_outputs\\H2\\speed_zone_position_dict', position_dict)
+
+
+
+
+
+
 
 
 

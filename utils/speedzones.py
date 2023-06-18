@@ -35,7 +35,6 @@ class Preprocess:
             frame = pd.read_excel(directory, position)
             frame = frame.dropna(axis='columns')
             try:
-                frame['Time Delta'] = frame['Excel Timestamp'].diff(1)
                 frame.columns = ['Match Phase', 'Real-Time Timestamp', 'Excel Timestamp', 'Speed',
                                  'Latitude', 'Longitude', 'Accel X', 'Accel Y', 'Accel Z']
                 error = False
@@ -43,6 +42,7 @@ class Preprocess:
                 print('error with data frame')
                 error = True
             finally:
+                frame['Time Delta'] = frame['Excel Timestamp'].diff(1)
                 if error:
                     match_dictionary[position] = {'error': error, 'frame': frame}
                 else:
@@ -101,10 +101,10 @@ class Speedzones(object):
             for i in range(1, 6):
                 speed_zones['v' + str(i)] = speed_zones['v0'] + sigma * i
         elif distribution_type == 'normal':
-            for i, j in enumerate(range(-2, 3)):
+            for i, j in enumerate([k for k in range(-2, 3) if k != 0]):
                 speed_zones['v' + str(i + 1)] = mu + j * sigma
 
-        speed_zones['v6'] = velocity.max()  # maximum velocity
+        speed_zones['v5'] = velocity.max()  # maximum velocity
 
         return speed_zones
 
@@ -136,10 +136,10 @@ class Speedzones(object):
             for i in range(1, 6):
                 speed_zones['a' + str(i)] = speed_zones['a0'] + sigma * i
         elif distribution_type == 'normal':
-            for i, j in enumerate(range(-2, 3)):
+            for i, j in enumerate([k for k in range(-2, 3) if k != 0]):
                 speed_zones['a' + str(i + 1)] = mu + j * sigma
 
-        speed_zones['a6'] = magnitude.max()  # maximum velocity
+        speed_zones['a5'] = magnitude.max()  # maximum velocity
 
         return speed_zones
 
