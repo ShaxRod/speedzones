@@ -25,11 +25,11 @@ study_groups = {'defenders': ('GK', 'GD'),
                 'goalers': ('GS', 'GA')}
 
 # boolean paramaters
-preprocess = True # preprocess data step : if already done set to False
+preprocess = False # preprocess data step : if already done set to False
 H1 = True
 H2 = True
-H3 = False
-H4 = False
+H3 = True
+H4 = True
 
 def netball():
 
@@ -48,7 +48,7 @@ def netball():
     if H1:
         print('Running Hypothesis 1')
         # creating directories
-        h1_directories = ['speedzone_outputs', 'H1', 'graphs', 'speedzones']
+        h1_directories = ['speedzone_outputs', 'H1', 'speedzones']
         dir_string = f'{output_dir}'
 
         for directory in h1_directories:
@@ -68,17 +68,18 @@ def netball():
         position_frame = pd.DataFrame()
 
         for group in position_group:
+            position_frame = pd.DataFrame()
             for team in data:
                 for match in data[team]:
                     for player in data[team][match]:
 
                         player_frame = data[team][match][player]
                         player_frame['player'] = player
+                        player_frame['match'] = match
 
                         if re.match(group, player):
                             position_frame = pd.concat((position_frame, player_frame), axis=0)
-                        else:
-                            print(f'{player} not a {group}')
+                            print(f'{player}-{match} is a {group}')
 
             # exit aggregation loops
             position_dict[group] = position_frame   # store position aggregated frame to dictionary
@@ -116,11 +117,9 @@ def netball():
 
             # importing speed-zone data
             if not H1:
-                # velocity_zones = pd.read_excel(f'{output_dir}\\speedzone_outputs\\H1\\speedzones\\velocity.xlsx')
                 acceleration_zones = pd.read_excel(f'{output_dir}\\speedzone_outputs\\H1\\speedzones\\acceleration.xlsx')
                 position_dict = pickled().open_jar(f'{output_dir}\\speedzone_outputs\\H1\\aggregated_position_dict')
             else:
-                # velocity_zones = H1_frame_v.copy()
                 acceleration_zones = H1_frame_a.copy()
 
 
@@ -140,42 +139,115 @@ def netball():
                                                                                        'a4', 'a5']].values.tolist()[0],
                                                      labels=['zone 1', 'zone 2', 'zone 3', 'zone 4', 'zone 5'])
 
+
         pickled().pickling(f'{output_dir}\\speedzone_outputs\\H2\\speed_zone_position_dict', position_dict)
 
-
-
-
-
-
-
-
+        print('Hypothesis 2 completed')
 
 # Hypotheis 3
 
     if H3:
+        print('Running Hypothesis 3')
+        h3_directories = ['speedzone_outputs',
+                          'speedzone_outputs\\H3',
+                          'speedzone_outputs\\H3\\counts',
+                          'speedzone_outputs\\H3\\study groups',
+                          'speedzone_outputs\\H3\\thirds']
 
-        h3_directories = ['speedzone_outputs', 'H3', 'speedzones']
-        dir_string = f'{output_dir}'
-
-        for directory in h2_directories:
-            dir_string_i = f'{dir_string}\\{directory}'
-            if os.path.exists(dir_string_i):
-                print(f'{dir_string_i} directory exists')
+        for directory in h3_directories:
+            dir_string = f'{output_dir}\\{directory}'
+            if os.path.exists(dir_string):
+                print(f'{dir_string} directory exists')
             else:
-                os.mkdir(f'{dir_string_i}')
+                os.mkdir(f'{dir_string}')
 
-            dir_string = dir_string_i
-
-        if not H1:
-            velocity_zones = pd.read_excel(f'{output_dir}\\speedzone_outputs\\H1\\speedzones\\velocity.xlsx')
-            acceleration_zones = pd.read_excel(f'{output_dir}\\speedzone_outputs\\H1\\speedzones\\acceleration.xlsx')
+        if not H2:
+            aggregated_frames = pickled().open_jar(f'{output_dir}\\speedzone_outputs\\H2\\speed_zone_position_dict')
         else:
-            velocity_zones = H1_frame_v.copy()
-            acceleration_zones = H1_frame_a.copy()
+            aggregated_frames = position_dict
 
+        # position speed zone counts
+        counts_dict = dict()
 
+        for position in aggregated_frames:
+            counts = aggregated_frames[position]['acceleration zones'].value_counts()
+            counts_dict[position] = counts
+            counts.to_excel(f'{output_dir}\\speedzone_outputs\\H3\\counts\\{position}_counts.xlsx')
+
+        # study group counts
+        for group in study_groups:
+            group_frame = pd.DataFrame()
+
+            for position in aggregated_frames:
+                if position in study_groups[group]:
+                    group_frame = pd.concat((group_frame, aggregated_frames[position]), axis=0)
+
+            counts = group_frame['acceleration zones'].value_counts()
+            counts.to_excel(f'{output_dir}\\speedzone_outputs\\H3\\study groups\\{group}_counts.xlsx')
+
+        # thirds groups
+
+        print('Hypothesis 3 completed')
 # Hypothesis 4
 
+    if H4:
+        print('Running Hypothesis 4')
+        h4_directories = ['speedzone_outputs',
+                          'speedzone_outputs\\H4',
+                          'speedzone_outputs\\H4\\counts',
+                          'speedzone_outputs\\H4\\study groups',
+                          'speedzone_outputs\\H4\\thirds']
+
+        for directory in h4_directories:
+            dir_string = f'{output_dir}\\{directory}'
+            if os.path.exists(dir_string):
+                print(f'{dir_string} directory exists')
+            else:
+                os.mkdir(f'{dir_string}')
+                print(f'{dir_string} directory exists has been created')
+
+        if not H2:
+            aggregated_frames = pickled().open_jar(f'{output_dir}\\speedzone_outputs\\H2\\speed_zone_position_dict')
+        else:
+            aggregated_frames = position_dict
+
+        # position speed zone counts
+        counts_dict = dict()
+        phase = ('First Half', 'Second Half')
+
+        for position in aggregated_frames:
+            aggregated_frames[position]['Match Phase'] = aggregated_frames[position]['Match Phase'].str.strip()
+            aggregated_frames[position]['Match Phase'] = aggregated_frames[position]['Match Phase'].apply(
+                lambda x: phase[1] if re.match('Sec', x) else phase[0])
+
+            for half in phase:
+                counts = aggregated_frames[position][aggregated_frames[position]['Match Phase'] == half]['acceleration zones'].value_counts()
+                counts_dict[f'{position}_{half}'] = counts
+                counts.to_excel(f'{output_dir}\\speedzone_outputs\\H4\\counts\\{position}_{half}_counts.xlsx')
+
+        #study groups
+        for group in study_groups:
+            group_frame = pd.DataFrame()
+
+            for position in aggregated_frames:
+                aggregated_frames[position]['Match Phase'] = aggregated_frames[position]['Match Phase'].str.strip()
+                aggregated_frames[position]['Match Phase'] = aggregated_frames[position]['Match Phase'].apply(
+                    lambda x: phase[1] if re.match('Sec', x) else phase[0])
+                if position in study_groups[group]:
+                    group_frame = pd.concat((group_frame, aggregated_frames[position]), axis=0)
+
+            for half in phase:
+                counts = group_frame[group_frame['Match Phase'] == half]['acceleration zones'].value_counts()
+                counts.to_excel(f'{output_dir}\\speedzone_outputs\\H4\\study groups\\{group}_{half}_counts.xlsx')
+
+
+
+
+
+
+        # thirds groups
+
+        print('Hypothesis 4 completed')
 
 
 
