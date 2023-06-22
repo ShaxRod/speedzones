@@ -26,8 +26,8 @@ study_groups = {'defenders': ('GK', 'GD'),
 
 # boolean paramaters
 preprocess = False # preprocess data step : if already done set to False
-H1 = True
-H2 = True
+H1 = False
+H2 = False
 H3 = True
 H4 = True
 
@@ -187,6 +187,16 @@ def netball():
 
         # thirds groups
 
+        for third in thirds_group:
+            third_frame = pd.DataFrame()
+
+            for position in aggregated_frames:
+                if position in thirds_group[third]:
+                    third_frame = pd.concat((third_frame, aggregated_frames[position]), axis=0)
+
+            counts = third_frame['acceleration zones'].value_counts()
+            counts.to_excel(f'{output_dir}\\speedzone_outputs\\H3\\thirds\\{third}_counts.xlsx')
+
         print('Hypothesis 3 completed')
 # Hypothesis 4
 
@@ -242,10 +252,19 @@ def netball():
 
 
 
-
-
-
         # thirds groups
+        for third in thirds_group:
+            third_frame = pd.DataFrame()
+
+            for position in aggregated_frames:
+                if position in thirds_group[third]:
+                    third_frame = pd.concat((third_frame, aggregated_frames[position]), axis=0)
+
+            for half in phase:
+                counts = third_frame['acceleration zones'].value_counts()
+                counts.to_excel(f'{output_dir}\\speedzone_outputs\\H4\\thirds\\{third}_{half}_counts.xlsx')
+
+
 
         print('Hypothesis 4 completed')
 
