@@ -28,8 +28,9 @@ study_groups = {'defenders': ('GK', 'GD'),
 preprocess = False # preprocess data step : if already done set to False
 H1 = False
 H2 = False
-H3 = True
-H4 = True
+H3 = False
+H4 = False
+H5 = True
 
 def netball():
 
@@ -267,6 +268,71 @@ def netball():
 
 
         print('Hypothesis 4 completed')
+
+
+    if H5:
+        print('Running Hypothesis 5')
+
+        h5_directories = ['speedzone_outputs',
+                          'speedzone_outputs\\H5']
+
+        for directory in h5_directories:
+            dir_string = f'{output_dir}\\{directory}'
+            if os.path.exists(dir_string):
+                print(f'{dir_string} directory exists')
+            else:
+                os.mkdir(f'{dir_string}')
+                print(f'{dir_string} directory exists has been created')
+
+        if not H2:
+            aggregated_frames = pickled().open_jar(f'{output_dir}\\speedzone_outputs\\H2\\speed_zone_position_dict')
+        else:
+            aggregated_frames = position_dict
+
+        player_dict = dict()
+        iterator_c = 0
+        phase = ('First Half', 'Second Half')
+        for position in aggregated_frames:
+            players = list(set(aggregated_frames[position]['player']))
+            for player in players:
+                player_frame = aggregated_frames[position][aggregated_frames[position]['player'] == player]
+
+                #fixes
+                '''player_frame['magnitude'] = (player_frame['Accel X'] ** 2 +
+                                             player_frame['Accel Y'] ** 2 +
+                                             player_frame['Accel Z'] ** 2) ** 0.5'''
+
+                player_frame['Match Phase'] = player_frame['Match Phase'].str.strip()
+                player_frame['Match Phase'] = player_frame['Match Phase'].apply(lambda x: phase[1] if re.match('Sec', x) else phase[0])
+
+
+                temp = {'player': player,
+                        'total acceleration counts': len(player_frame)
+                        }
+
+                # counter per zone
+                counts = player_frame['acceleration zones'].value_counts()
+                for i, j in enumerate(counts):
+                    temp[f'{counts.index.to_list()[i]} totals counts'] = j
+                #time spent
+                for i, j in enumerate(counts):
+                    temp[f'{counts.index.to_list()[i]} time in ms'] = j * 0.1
+
+                # counts per half
+                for half in phase:
+                    phase_counts = player_frame[player_frame['Match Phase'] == half]['acceleration zones'].value_counts()
+                    for i, j in enumerate(phase_counts):
+                        temp[f'{phase_counts.index.to_list()[i]} {half} counts'] = j * 0.1
+
+                player_dict[iterator_c] = temp
+                iterator_c+=1
+
+        frame = pd.DataFrame(player_dict)
+        frame = frame.swapaxes('index', 'columns')
+        frame.to_excel(f'{output_dir}\\speedzone_outputs\\H5\\player_frame.xlsx')
+
+
+
 
 
 
